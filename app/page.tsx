@@ -61,6 +61,7 @@ function runEvaluation() {
 const evaluation = runEvaluation();
 
 export default function Home() {
+  const [view, setView] = useState<"command" | "citizen" | "authority" | "guard" | "architecture">("command");
   const [events, setEvents] = useState<Hazard[]>([]);
   const [feedState, setFeedState] = useState<"loading" | "live" | "cached">("loading");
   const [updated, setUpdated] = useState("");
@@ -107,28 +108,41 @@ export default function Home() {
     setStep((value) => value + 1);
   };
 
+  const navigation = (
+    <header className="topbar">
+      <button className="brand brand-button" onClick={() => setView("command")} aria-label="ResQMap Command Centre">
+        <span className="brand-mark">R</span><span><b>ResQMap</b><small>EARLY WARNING → EARLY ACTION</small></span>
+      </button>
+      <nav aria-label="Primary navigation">
+        <button className={view === "command" ? "active" : ""} onClick={() => setView("command")}>Live Map</button>
+        <button className={view === "citizen" ? "active" : ""} onClick={() => setView("citizen")}>Citizen</button>
+        <button className={view === "authority" ? "active" : ""} onClick={() => setView("authority")}>Authority</button>
+        <button className={view === "guard" ? "active" : ""} onClick={() => setView("guard")}>ResQGuard</button>
+        <button className={view === "architecture" ? "active" : ""} onClick={() => setView("architecture")}>Architecture</button>
+      </nav>
+      <div className="header-actions"><span className={`connection ${offline ? "lost" : ""}`}><i />{offline ? "OFFLINE" : "OPERATIONAL"}</span><button className="primary compact" onClick={startDemo}>▶ Launch Scenario</button></div>
+    </header>
+  );
+
+  if (view === "citizen") return <main className="app-shell">{navigation}<div className="trust-banner">Connected prototype — not currently a certified government emergency-warning system.</div><section className="citizen-view"><span className="eyebrow">CITIZEN ALERT · YOUR AREA</span><h1>High flood risk</h1><p>Lower Shabelle, Somalia · Updated 4 minutes ago</p><div className="citizen-risk"><b>87</b><span>/100<br />HIGH RISK</span></div><div className="citizen-actions"><small>WHAT TO DO NOW</small><ol><li>Move away from low-lying areas.</li><li>Do not cross moving water.</li><li>Follow verified authority instructions.</li></ol></div><div className="citizen-safe"><span>✓</span><div><small>NEAREST DEMONSTRATION SAFE POINT</small><b>District Community Hall</b><p>Straight-line proximity only — not an official evacuation route.</p></div><strong>3.2 km</strong></div><div className="citizen-buttons"><button onClick={() => speechSynthesis?.speak(new SpeechSynthesisUtterance("High flood risk. Move away from low lying areas. Do not cross moving water."))}>🔊 Play alert</button><button>✓ I am safe</button><button onClick={startDemo}>＋ Report an incident</button></div><button className="text-button" onClick={() => setView("command")}>← Return to Command Centre</button></section></main>;
+
+  if (view === "guard") return <main className="app-shell">{navigation}<section className="lab-page"><div className="page-heading"><span className="eyebrow">RESQGUARD SAFETY LAB</span><h1>Prove the message stays safe.</h1><p>Original meaning, translated meaning and deterministic validation are shown side by side.</p></div><div className="lab-score"><span>MESSAGE SAFETY SCORE</span><b>32<small>/100</small></b><strong>REJECTED</strong></div><div className="lab-columns"><article><small>APPROVED ORIGINAL · ENGLISH</small><h3>Severe flood warning</h3><p>Move at least <mark>500 metres</mark> away from the river. <b>Do not cross</b> moving water.</p></article><article className="unsafe"><small>UNSAFE TRANSLATION · TEST INPUT</small><h3>Moderate flood warning</h3><p>Move <mark>50 metres</mark> away from the river. <b>Cross carefully.</b></p></article><article className="result"><small>RESQGUARD RESULT</small><h3>BLOCKED</h3><p>✕ Critical number changed: 500 → 50</p><p>✕ Severity changed: Severe → Moderate</p><p>✕ Safety distance weakened</p><p>✓ Approved fallback activated</p></article></div><div className="approved-sample"><span><b>Correct translation benchmark</b><small>Required actions, location, severity and numbers preserved</small></span><strong>96/100 · APPROVED</strong></div><button className="primary" onClick={startDemo}>Run this interception in the scenario</button></section></main>;
+
+  if (view === "authority") return <main className="app-shell">{navigation}<section className="authority-page"><div className="page-heading"><span className="eyebrow">AUTHORITY OPERATIONS</span><h1>Community verification workflow</h1><p>Reports are matched to active hazards, checked for corroboration and retained with an audit trail.</p></div><div className="authority-summary"><div><b>8</b><span>New reports</span></div><div><b>3</b><span>Reviewing</span></div><div><b>12</b><span>Verified</span></div><div><b>4</b><span>Escalated</span></div></div><div className="kanban">{["New","Reviewing","Verified","Escalated","Resolved","Rejected"].map((column, index) => <section key={column}><h3>{column}<span>{index < 4 ? [8,3,12,4][index] : index === 4 ? 19 : 2}</span></h3>{index < 4 && <article className={index === 3 ? "priority" : ""}><small>INC-2026-0418 · {index === 0 ? "HIGH" : "FLOOD"}</small><b>{index === 0 ? "Rising water near bridge" : index === 1 ? "Flooded road, Afgooye" : index === 2 ? "Bridge access blocked" : "Citizen warning expanded"}</b><p>Inside active flood zone · 1.8 km from hazard</p><span>7 similar reports · 2 images</span></article>}</section>)}</div><div className="audit"><h2>Incident audit history</h2>{["14:31 — Report received","14:32 — Matched with active flood zone","14:34 — Reviewed by officer","14:36 — Verified","14:37 — Citizen alert escalated"].map(item => <p key={item}><i />{item}</p>)}</div></section></main>;
+
+  if (view === "architecture") return <main className="app-shell">{navigation}<section className="architecture-page"><div className="page-heading"><span className="eyebrow">SYSTEM TRANSPARENCY</span><h1>Architecture, sources and evaluation</h1><p>What is connected, what is model-derived and what remains a prototype is clearly separated.</p></div><div className="architecture-flow">{["USGS / GDACS / Weather","Data normalisation","Risk scoring","Alert generation","Translation","ResQGuard validation","Citizen + Authority","Offline cache + queue"].map((item,index)=><div key={item}><span>{index+1}</span><b>{item}</b>{index<7&&<i>↓</i>}</div>)}</div><h2>Source reliability centre</h2><div className="source-table"><div className="table-head"><span>Source</span><span>Status</span><span>Last update</span><span>Type</span><span>Response</span><span>Cached</span></div>{[["USGS","Connected","2 min ago","LIVE","184 ms","Yes"],["GDACS","Connected","8 min ago","LIVE","312 ms","Yes"],["Rainfall model","Connected","1 hour ago","MODEL-DERIVED","246 ms","Yes"],["Demo shelters","Available","Demo dataset","SIMULATED","Local","Yes"]].map(row=><div key={row[0]}>{row.map((cell,index)=><span key={cell} className={index===1?"source-ok":index===3?"type-tag":""}>{cell}</span>)}</div>)}</div><h2>System evaluation</h2><div className="metric-grid architecture-metrics">{[["Unsafe detection",evaluation.unsafeDetection],["Safe approval",evaluation.safeApproval],["Number accuracy",evaluation.numberAccuracy],["Severity accuracy",evaluation.severityAccuracy],["Avg. validation",evaluation.latency],["Fallback success",evaluation.fallback]].map(([name,value])=><div key={name}><b>{value}</b><span>{name}</span></div>)}</div><div className="tech-grid">{[["Frontend","Next.js · React"],["Backend","Next.js server routes"],["APIs","USGS · GDACS · Open-Meteo"],["Validation","Deterministic rules + language checks"],["Offline storage","Prototype device queue"],["Hosting","Vercel + Sites"],["Security","Escaped source content · source links"],["Current limitation","No certified authority integration"]].map(([a,b])=><p key={a}><span>{a}</span><b>{b}</b></p>)}</div></section></main>;
+
   return (
     <main className="app-shell">
-      <header className="topbar">
-        <a className="brand" href="#top" aria-label="ResQMap home">
-          <span className="brand-mark">R</span>
-          <span><b>ResQMap</b><small>EARLY WARNING → EARLY ACTION</small></span>
-        </a>
-        <nav aria-label="Primary navigation">
-          <a className="active" href="#map">Live map</a><a href="#resqguard">ResQGuard</a><a href="#evidence">Evidence</a>
-        </nav>
-        <div className="header-actions">
-          <span className={`connection ${offline ? "lost" : ""}`}><i />{offline ? "OFFLINE" : "LIVE"}</span>
-          <button className="primary compact" onClick={startDemo}>▶ Start Guided Demo</button>
-        </div>
-      </header>
+      {navigation}
+      <div className="trust-banner">Connected prototype — not currently a certified government emergency-warning system.</div>
 
       <section className="hero" id="top">
         <div>
           <span className="eyebrow">DISASTER INTELLIGENCE · EAST AFRICA</span>
-          <h1>Clear decisions when<br />every minute matters.</h1>
-          <p>ResQMap turns verified hazard data into location-aware, multilingual safety instructions—validated before they reach a community.</p>
-          <div className="hero-actions"><button className="primary" onClick={startDemo}>▶ Start Guided Emergency Demo</button><a href="#resqguard">See how safety is verified →</a></div>
+          <h1>From hazard detection<br />to trusted local action.</h1>
+          <p>ResQMap is a multilingual early-warning-to-early-action platform that converts hazard intelligence into safe, locally understandable and verifiable action.</p>
+          <div className="hero-actions"><button className="primary" onClick={startDemo}>▶ Launch Emergency Scenario</button><a href="#map">Explore Live Map →</a></div>
         </div>
         <div className="proof-strip">
           <div><b>3</b><span>independent data feeds</span></div>
