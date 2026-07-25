@@ -13,8 +13,15 @@
 - Architecture and data-source explanation: `ARCHITECTURE_AND_DATA.md`
 - ResQGuard methodology and genuine results: `RESQGUARD_METHODOLOGY.md`
 - Reliability evidence: `WORKFLOW_TEST_REPORT.md`
-- Five screenshot checklist: `SCREENSHOT_CHECKLIST.md`
-- Continuous demo video: record after deploying this frozen build
+- Five captured screenshots: `screenshots/` and `SCREENSHOT_CHECKLIST.md`
+- Continuous demo video: the timed narration/click script is frozen in `FIVE_MINUTE_DEMO.md`; record the production workflow with microphone narration in one take
+
+## Demo readiness
+
+- The complete workflow passed twice without a refresh.
+- The frozen Vercel production build is the recording target.
+- Five evidence screenshots were captured from production.
+- No synthetic or stitched “demo recording” is included. The final video should be a genuine continuous screen recording with the presenter’s microphone, following `FIVE_MINUTE_DEMO.md`.
 
 ## Prototype limitations
 

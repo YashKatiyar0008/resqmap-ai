@@ -1,12 +1,11 @@
 # Five judge-ready screenshots
 
-Capture these from the frozen production build at 1440 × 900:
+Captured from the frozen production build in one browser session:
 
-1. **Command Centre:** hero, live-source status, global map and selected hazard evidence.
-2. **Citizen alert:** HIGH FLOOD RISK, three actions, 3.2 km demonstration safe point and three primary controls.
-3. **ResQGuard:** original and unsafe translation with all four blocking reasons visible.
-4. **Authority workflow:** same `INC-2026-0418` report, verification timeline and escalation controls.
-5. **Offline resilience:** persistent “Offline mode active” banner, cached verified warning and two queued reports.
+1. [`01-live-map-hazard-evidence.jpeg`](screenshots/01-live-map-hazard-evidence.jpeg) — worldwide map, visible hazard classes, selected model-derived hazard, source and timestamp.
+2. [`02-citizen-multilingual-alert.jpeg`](screenshots/02-citizen-multilingual-alert.jpeg) — citizen guidance, English/Kiswahili/Somali controls, voice control and demonstration safe point.
+3. [`03-resqguard-message-blocked.jpeg`](screenshots/03-resqguard-message-blocked.jpeg) — blocked message with all four safety reasons and approved fallback.
+4. [`04-authority-verified-escalated.jpeg`](screenshots/04-authority-verified-escalated.jpeg) — the same citizen report with verification, escalation and warning-update states complete.
+5. [`05-genuine-evaluation-results.jpeg`](screenshots/05-genuine-evaluation-results.jpeg) — genuine 50-case ResQGuard evaluation and documented prototype limitations.
 
-Use the same browser session and do not include browser notifications, developer panels or personal bookmarks.
-
+The offline state remains part of the continuous demonstration rather than a sixth static screenshot.

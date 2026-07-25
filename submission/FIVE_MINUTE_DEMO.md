@@ -1,5 +1,9 @@
 # Five-minute demonstration
 
+**Recording target:** https://resqmap-live-site.vercel.app
+
+**Recording rule:** use one continuous browser session, no refreshes or edits, with microphone narration. The complete workflow has already passed twice; if any action fails during the take, discard the recording and start again.
+
 ## 0:00–0:25 — The problem
 
 “Hazard data exists, but communities can still receive late, unclear or dangerously changed instructions. In multilingual emergencies, the final message matters as much as detection.”
@@ -53,3 +57,16 @@ Click **Launch Emergency Scenario**.
 - Show the 50-message ResQGuard evaluation, including the two unsafe misses and one safe false rejection.
 - Close with: “ResQMap AI proves that the message reaching a citizen remains accurate, understandable and safe.”
 
+## Before pressing Record
+
+- Close personal tabs and browser notifications.
+- Set the browser to a clean 1440 × 900 or 16:10 presentation view.
+- Open the production URL at the top of the page.
+- Confirm microphone input and disable unrelated system audio.
+- Keep this script on a second device or printed page so it never appears in the recording.
+
+## Final export
+
+- Target length: 4:55–5:00.
+- Export as 1080p H.264 MP4.
+- Suggested filename: `resqmap-ai-five-minute-demo.mp4`.
