@@ -17,8 +17,6 @@ type LiveEvent = {
   detail?: string;
 };
 
-const inRegion = (lat: number, lon: number) => lat >= -13 && lat <= 23 && lon >= 21 && lon <= 52;
-
 const demoLocations = [
   { name: "Beledweyne, Somalia", latitude: 4.7358, longitude: 45.2036 },
   { name: "Marsabit, Kenya", latitude: 2.3347, longitude: 37.9909 },
@@ -38,13 +36,13 @@ async function getEarthquakes(): Promise<LiveEvent[]> {
   };
   return (data.features ?? []).flatMap((feature) => {
     const [longitude, latitude] = feature.geometry?.coordinates ?? [];
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !inRegion(latitude, longitude)) return [];
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return [];
     const magnitude = Number(feature.properties?.mag ?? 0);
     return [{
       id: `usgs-${feature.id}`,
       type: "earthquake" as const,
       title: `M${magnitude.toFixed(1)} earthquake`,
-      place: feature.properties?.place ?? "East Africa",
+      place: feature.properties?.place ?? "Worldwide event",
       severity: magnitude >= 6 ? "red" : magnitude >= 4.5 ? "orange" : "green",
       time: new Date(feature.properties?.time ?? Date.now()).toISOString(),
       latitude,
@@ -78,7 +76,7 @@ async function getGdacsEvents(): Promise<LiveEvent[]> {
       longitude = Number(coords[0]);
       latitude = Number(coords[1]);
     }
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !inRegion(latitude, longitude)) return [];
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return [];
     const isFlood = eventType === "FL";
     const alert = String(p.alertlevel ?? p.alertLevel ?? p.alert ?? "green").toLowerCase();
     const dateValue = String(p.fromdate ?? p.fromDate ?? p.pubdate ?? p.date ?? new Date().toISOString());
@@ -87,7 +85,7 @@ async function getGdacsEvents(): Promise<LiveEvent[]> {
       id: `gdacs-${eventType}-${eventId}`,
       type: isFlood ? "flood" as const : "drought" as const,
       title: String(p.name ?? p.eventname ?? p.title ?? (isFlood ? "Flood alert" : "Drought alert")),
-      place: String(p.country ?? p.countryname ?? p.location ?? "East Africa"),
+      place: String(p.country ?? p.countryname ?? p.location ?? "Worldwide event"),
       severity: ["red", "orange", "green"].includes(alert) ? alert : "green",
       time: new Date(dateValue).toString() === "Invalid Date" ? new Date().toISOString() : new Date(dateValue).toISOString(),
       latitude,
@@ -143,7 +141,7 @@ export async function GET() {
   const events = results.flatMap((result) => result.status === "fulfilled" ? result.value : []);
   return NextResponse.json({
     generatedAt: new Date().toISOString(),
-    region: "East Africa",
+    region: "Worldwide",
     live: true,
     feeds: {
       usgs: results[0].status === "fulfilled",

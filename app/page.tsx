@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type Hazard = {
   id: string;
@@ -13,6 +13,8 @@ type Hazard = {
   sourceUrl: string;
   status: string;
   detail: string;
+  latitude: number;
+  longitude: number;
 };
 
 const demoSteps = [
@@ -71,6 +73,12 @@ export default function Home() {
   const [offline, setOffline] = useState(false);
   const [reportState, setReportState] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
+  const [mapSearch, setMapSearch] = useState("");
+  const [searchState, setSearchState] = useState("Search any city or coordinates");
+  const [mapReady, setMapReady] = useState(false);
+  const mapNode = useRef<HTMLDivElement | null>(null);
+  const mapInstance = useRef<any>(null);
+  const hazardLayer = useRef<any>(null);
 
   const loadHazards = async () => {
     setFeedState("loading");
@@ -89,6 +97,43 @@ export default function Home() {
 
   useEffect(() => { loadHazards(); }, []);
   useEffect(() => {
+    let cancelled = false;
+    const initialise = () => {
+      if (cancelled || !mapNode.current || mapInstance.current || !(window as any).L) return;
+      const L = (window as any).L;
+      const map = L.map(mapNode.current, { worldCopyJump: true, minZoom: 2, zoomControl: true }).setView([12, 15], 2);
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        attribution: "© OpenStreetMap © CARTO", maxZoom: 20,
+      }).addTo(map);
+      mapInstance.current = map;
+      hazardLayer.current = L.layerGroup().addTo(map);
+      setMapReady(true);
+    };
+    if ((window as any).L) initialise();
+    else {
+      if (!document.querySelector('link[data-resq-leaflet]')) {
+        const link = document.createElement("link"); link.rel = "stylesheet"; link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"; link.dataset.resqLeaflet = "true"; document.head.appendChild(link);
+      }
+      let script = document.querySelector('script[data-resq-leaflet]') as HTMLScriptElement | null;
+      if (!script) { script = document.createElement("script"); script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"; script.dataset.resqLeaflet = "true"; document.head.appendChild(script); }
+      script.addEventListener("load", initialise, { once: true });
+    }
+    return () => { cancelled = true; };
+  }, []);
+  useEffect(() => {
+    const L = (window as any).L;
+    if (!L || !mapInstance.current || !hazardLayer.current) return;
+    hazardLayer.current.clearLayers();
+    events.forEach((event) => {
+      if (!Number.isFinite(event.latitude) || !Number.isFinite(event.longitude)) return;
+      const color = event.type === "flood" ? "#ff7a21" : event.type === "drought" ? "#f2b91d" : "#f04f59";
+      const marker = L.circleMarker([event.latitude, event.longitude], { radius: 8, color: "#fff", weight: 2, fillColor: color, fillOpacity: .92 });
+      marker.bindTooltip(`${event.title} · ${event.place}`);
+      marker.on("click", () => setSelected(event));
+      marker.addTo(hazardLayer.current);
+    });
+  }, [events, mapReady]);
+  useEffect(() => {
     if (step === 4 && reportState === 0) {
       const timer = window.setInterval(() => setReportState((value) => Math.min(value + 1, 4)), 700);
       return () => window.clearInterval(timer);
@@ -98,7 +143,7 @@ export default function Home() {
   const hazard = selected || events[0] || {
     id: "demo-flood", type: "flood" as const, title: "Severe Flood Risk", place: "Lower Shabelle, Somalia",
     severity: "orange", time: new Date().toISOString(), source: "GDACS", sourceUrl: "https://www.gdacs.org",
-    status: "reported", detail: "River levels and forecast rainfall indicate flooding near low-lying communities.",
+    status: "reported", detail: "River levels and forecast rainfall indicate flooding near low-lying communities.", latitude: 1.75, longitude: 44.2,
   };
   const dateLabel = useMemo(() => new Date(hazard.time).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }), [hazard]);
 
@@ -106,6 +151,34 @@ export default function Home() {
   const next = () => {
     if (step === 5) { setOffline(false); setDemoOpen(false); return; }
     setStep((value) => value + 1);
+  };
+  const searchWorld = async (event: FormEvent) => {
+    event.preventDefault();
+    const query = mapSearch.trim();
+    if (!query) return;
+    const coordinateMatch = query.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+    if (coordinateMatch && mapInstance.current) {
+      const latitude = Number(coordinateMatch[1]), longitude = Number(coordinateMatch[2]);
+      if (latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180) {
+        mapInstance.current.flyTo([latitude, longitude], 10, { duration: 1.2 }); setSearchState(`Showing ${latitude.toFixed(3)}, ${longitude.toFixed(3)}`); return;
+      }
+    }
+    setSearchState("Searching worldwide…");
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`);
+      const results = await response.json();
+      if (!results[0]) { setSearchState("Location not found. Try a city, country, or latitude, longitude."); return; }
+      mapInstance.current?.flyTo([Number(results[0].lat), Number(results[0].lon)], 10, { duration: 1.2 });
+      setSearchState(results[0].display_name);
+    } catch { setSearchState("Search is temporarily unavailable. You can still pan and zoom worldwide."); }
+  };
+  const locateUser = () => {
+    setSearchState("Finding your location…");
+    navigator.geolocation?.getCurrentPosition(
+      ({ coords }) => { mapInstance.current?.flyTo([coords.latitude, coords.longitude], 11, { duration: 1.2 }); setSearchState(`Your location · ${coords.latitude.toFixed(3)}, ${coords.longitude.toFixed(3)}`); },
+      () => setSearchState("Location permission was not available."),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
   };
 
   const navigation = (
@@ -139,7 +212,7 @@ export default function Home() {
 
       <section className="hero" id="top">
         <div>
-          <span className="eyebrow">DISASTER INTELLIGENCE · EAST AFRICA</span>
+          <span className="eyebrow">GLOBAL DISASTER INTELLIGENCE · LOCAL ACTION</span>
           <h1>From hazard detection<br />to trusted local action.</h1>
           <p>ResQMap is a multilingual early-warning-to-early-action platform that converts hazard intelligence into safe, locally understandable and verifiable action.</p>
           <div className="hero-actions"><button className="primary" onClick={startDemo}>▶ Launch Emergency Scenario</button><a href="#map">Explore Live Map →</a></div>
@@ -153,22 +226,18 @@ export default function Home() {
 
       <section className={`map-section ${fullscreen ? "map-full" : ""}`} id="map">
         <div className="map-toolbar">
-          <div><span className="eyebrow">OPERATIONAL VIEW</span><h2>Live hazard map</h2></div>
+          <div><span className="eyebrow">WORLDWIDE OPERATIONAL VIEW</span><h2>Global live hazard map</h2></div>
           <div className="map-actions">
             <span className={`freshness ${feedState}`}><i />{feedState === "loading" ? "Refreshing sources…" : feedState === "live" ? `Live · updated ${updated}` : `Cached · last success ${updated}`}</span>
             <button onClick={loadHazards}>↻ Retry</button><button onClick={() => setFullscreen(!fullscreen)}>⛶ {fullscreen ? "Exit" : "Full screen"}</button>
           </div>
         </div>
         <div className="map-layout">
-          <div className="map-canvas" role="img" aria-label="Hazard map of East Africa">
-            <div className="map-label somalia">SOMALIA</div><div className="map-label kenya">KENYA</div><div className="map-label ethiopia">ETHIOPIA</div>
-            <div className="route-line" />
-            <button className="marker flood m1" aria-label="Flood, Lower Shabelle" onClick={() => setSelected(null)}><span>≋</span><b>Flood</b></button>
-            <button className="marker drought m2" aria-label="Drought, Marsabit" onClick={() => setSelected(events.find(e => e.type === "drought") || null)}><span>☀</span><b>Drought</b></button>
-            <button className="marker quake m3" aria-label="Earthquake event" onClick={() => setSelected(events.find(e => e.type === "earthquake") || null)}><span>⌁</span><b>Earthquake</b></button>
-            <button className="marker safe m4" aria-label="Verified safe point"><span>✓</span><b>Safe point</b></button>
+          <div className="map-canvas global-map" aria-label="Interactive worldwide hazard map">
+            <div ref={mapNode} className="leaflet-map" />
+            <form className="map-search" onSubmit={searchWorld}><input value={mapSearch} onChange={(event) => setMapSearch(event.target.value)} placeholder="Search any city, country, or lat, long" aria-label="Search worldwide map" /><button>Search</button><button type="button" onClick={locateUser}>⌖ Locate me</button><small>{searchState}</small></form>
             <div className="legend"><b>MAP KEY</b><span><i className="orange" /> Flood</span><span><i className="yellow" /> Drought</span><span><i className="red" /> Earthquake</span><span><i className="green" /> Verified safe point</span></div>
-            <div className="layers"><b>LAYERS</b><label><input type="checkbox" defaultChecked /> Hazard events</label><label><input type="checkbox" defaultChecked /> Safe points</label><label><input type="checkbox" /> Population exposure</label></div>
+            <div className="world-badge"><b>WORLD COVERAGE</b><span>Drag and zoom anywhere</span></div>
           </div>
           <aside className="hazard-panel">
             <div className="hazard-heading"><span className={`hazard-icon ${hazard.type}`}>{hazard.type === "flood" ? "≋" : hazard.type === "drought" ? "☀" : "⌁"}</span><span><small>{hazard.status === "reported" ? "LIVE EVENT" : "MODEL-DERIVED"}</small><h3>{hazard.title}</h3><p>{hazard.place}</p></span></div>
@@ -199,7 +268,7 @@ export default function Home() {
         <div className="evidence-note"><span>DATASET v1.0</span><b>{evaluation.total} labelled alert examples</b><p>Results are computed against expected pass/block labels. Cases and failure categories are documented for judge review.</p><button onClick={startDemo}>Run the guided test →</button></div>
       </section>
 
-      <footer><div className="brand"><span className="brand-mark">R</span><span><b>ResQMap</b><small>BUILT FOR COMMUNITIES AT RISK</small></span></div><p>Prototype decision-support system. Always follow official emergency authorities.</p><span>East Africa · 2026</span></footer>
+      <footer><div className="brand"><span className="brand-mark">R</span><span><b>ResQMap</b><small>BUILT FOR COMMUNITIES AT RISK</small></span></div><p>Worldwide prototype decision-support system. Always follow official emergency authorities.</p><span>Global coverage · 2026</span></footer>
 
       {demoOpen && <div className="demo-backdrop" role="dialog" aria-modal="true" aria-label="Guided emergency demonstration">
         <div className="demo">
