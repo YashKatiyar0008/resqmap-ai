@@ -8,7 +8,7 @@
 
 - Public website: https://resqmap-live-site.vercel.app
 - Connected deployment: https://resqmap-east-africa.yashkatiyar226.chatgpt.site
-- Public GitHub repository: pending repository publication
+- Public GitHub repository: https://github.com/YashKatiyar0008/resqmap-ai
 - Five-minute narration and click script: `FIVE_MINUTE_DEMO.md`
 - Architecture and data-source explanation: `ARCHITECTURE_AND_DATA.md`
 - ResQGuard methodology and genuine results: `RESQGUARD_METHODOLOGY.md`
@@ -39,4 +39,3 @@ Deliver approved messages through cell broadcast, SMS and zero-rated citizen acc
 ### Humanitarian organisations
 
 Connect verified field reports, multilingual message libraries, humanitarian data exchange feeds and partner-managed safe-point verification.
-
