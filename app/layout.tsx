@@ -6,8 +6,9 @@ const sans = Geist({ variable: "--font-sans", subsets: ["latin"] });
 const mono = Geist_Mono({ variable: "--font-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ResQMap AI — Early Warning to Early Action",
-  description: "Trusted disaster intelligence, personal exposure matching and multilingual safety guidance for East Africa.",
+  metadataBase: new URL("https://resqmap-live-site.vercel.app"),
+  title: "ResQMap — Clear decisions when every minute matters",
+  description: "Verified hazard intelligence, multilingual citizen alerts and ResQGuard safety validation for East Africa.",
   icons: { icon: "/favicon.svg" },
   openGraph: {
     title: "ResQMap AI",
