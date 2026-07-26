@@ -17,7 +17,7 @@ Click **Launch Emergency Scenario**.
 ## 0:50–1:45 — Live map and hazard evidence
 
 - Select the Lower Shabelle flood scenario.
-- Point to **LIVE**, GDACS, source timestamp and risk score.
+- Point to **SIMULATED FLOOD SCENARIO**, the representative source note and risk score.
 - Briefly show the connected USGS, GDACS and rainfall-model status panel.
 - Explain that live, model-derived, simulated and community-reported data are never mixed without labels.
 
@@ -54,7 +54,7 @@ Click **Launch Emergency Scenario**.
 
 - Finish the scenario and open **Architecture**.
 - Show the data flow and source-reliability centre.
-- Show the 50-message ResQGuard evaluation, including the two unsafe misses and one safe false rejection.
+- Show the 72-case ResQGuard evaluation, including the two conservative safe rejections.
 - Close with: “ResQMap AI proves that the message reaching a citizen remains accurate, understandable and safe.”
 
 ## Before pressing Record

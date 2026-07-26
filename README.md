@@ -1,98 +1,75 @@
-# vinext-starter
+# ResQMap AI — From Early Warning to Trusted Action
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+ResQMap AI is an IGAD Hackathon 2026 prototype for turning hazard intelligence into clear, multilingual, safety-checked action for East African communities.
 
-## Prerequisites
+Public website: https://resqmap-live-site.vercel.app
 
-- Node.js `>=22.13.0`
+## What It Demonstrates
 
-## Quick Start
+- Live hazard intelligence for IGAD and East African communities.
+- Globally extensible map architecture with search and geolocation.
+- Connected source status for USGS earthquakes, GDACS alerts and a weather-risk model.
+- Clear data labels: `LIVE`, `MODEL-DERIVED`, `SIMULATED` and `COMMUNITY-REPORTED`.
+- Citizen alert view with English, Kiswahili and Somali guidance plus browser voice playback.
+- ResQGuard translation validation that blocks dangerous changes before delivery.
+- Community report and authority verification flow.
+- IndexedDB offline prototype for the last verified warning and queued reports.
+
+## Data Sources
+
+| Source | Status in prototype | Classification | Use |
+| --- | --- | --- | --- |
+| USGS Earthquakes | Connected | LIVE | Recent earthquake events |
+| GDACS Alerts | Connected | LIVE | Flood and drought alert feed |
+| Open-Meteo | Connected | MODEL-DERIVED | Soil-moisture and rainfall risk signals |
+| ResQMap scenario data | Local | SIMULATED | Lower Shabelle judge demonstration and shelter data |
+
+External API calls use request timeouts so one slow feed does not freeze the full hazard response. The client also refreshes source data automatically every five minutes and supports manual retry.
+
+## ResQGuard Evaluation
+
+The executable evaluation fixture contains 72 manually reviewed alert cases:
+
+- 24 safe messages
+- 48 unsafe mutations
+- 3 languages: English, Kiswahili and Somali
+- 8 unsafe categories: changed numbers, changed units, missing instructions, wrong severity, wrong location, dangerous wording, incomplete translation and wrong hazard
+- Expected result recorded for every case
+
+Current measured result from `node --test tests/resqguard-evaluation.test.mjs`:
+
+- Unsafe messages detected: 48/48
+- Safe messages approved: 22/24
+- Number and unit decisions correct: 69/72
+- Severity decisions correct: 72/72
+
+The CSV fixture is available at `public/resqguard-evaluation-cases.csv`.
+
+## Prototype Limitations
+
+This is not a certified government warning system. The Lower Shabelle flood card is intentionally labelled as a simulated scenario. The community report and authority dashboard demonstrate the verification journey inside one browser session; they are not a production multi-user backend. Offline behavior stores one verified warning and queued report records in browser IndexedDB for prototype evidence.
+
+## Run Locally
 
 ```bash
 npm install
 npm run dev
-npm run build
 ```
 
-This starter does not use `wrangler.jsonc`.
+## Verify
 
-## Included Shape
-
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-OpenAI workspace sites can read the current user's email from
-`oai-authenticated-user-email`.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```bash
+node --test tests/resqguard-evaluation.test.mjs
+npm run vercel-build
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+## Submission Package
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
+Supporting judge materials are in `submission/`:
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+- `FIVE_MINUTE_DEMO.md`
+- `ARCHITECTURE_AND_DATA.md`
+- `RESQGUARD_METHODOLOGY.md`
+- `WORKFLOW_TEST_REPORT.md`
+- `SCREENSHOT_CHECKLIST.md`
+- `SUBMISSION_PACKAGE.md`

@@ -25,5 +25,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body className={`${sans.variable} ${mono.variable}`}>{children}</body></html>;
+  return <html lang="en"><head><link rel="preconnect" href="https://a.basemaps.cartocdn.com" /><link rel="preconnect" href="https://b.basemaps.cartocdn.com" /><link rel="preconnect" href="https://c.basemaps.cartocdn.com" /><link rel="preconnect" href="https://nominatim.openstreetmap.org" /></head><body className={`${sans.variable} ${mono.variable}`}>{children}</body></html>;
 }

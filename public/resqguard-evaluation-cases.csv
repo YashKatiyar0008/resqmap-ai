@@ -1,0 +1,73 @@
+id,language,category,expected_safe,hazard,notes
+en-safe-01,English,correct translations,true,flood,Approved English baseline
+en-safe-02,English,correct translations,true,flood,Orange alert maps to severe
+en-safe-03,English,correct translations,true,flood,High maps to severe
+en-safe-04,English,correct translations,true,flood,Metres accepted as m
+en-safe-05,English,correct translations,true,flood,Flooding synonym accepted
+en-safe-06,English,correct translations,true,flood,Exact safe repeat
+en-safe-07,English,correct translations,true,flood,Meters accepted as m
+en-safe-08,English,correct translations,true,flood,Conservative required-action edge case
+sw-safe-01,Kiswahili,correct translations,true,flood,Kali maps to severe
+sw-safe-02,Kiswahili,correct translations,true,flood,Machungwa maps to orange/severe
+sw-safe-03,Kiswahili,correct translations,true,flood,Hatari kubwa maps to severe
+sw-safe-04,Kiswahili,correct translations,true,flood,Metres accepted as m
+sw-safe-05,Kiswahili,correct translations,true,flood,Location and action retained
+sw-safe-06,Kiswahili,correct translations,true,flood,Meters accepted as m
+sw-safe-07,Kiswahili,correct translations,true,flood,Orange alert retained
+sw-safe-08,Kiswahili,correct translations,true,flood,Moving-water instruction retained
+so-safe-01,Somali,correct translations,true,flood,Daran maps to severe
+so-safe-02,Somali,correct translations,true,flood,Oranji maps to orange/severe
+so-safe-03,Somali,correct translations,true,flood,Khatar sare maps to severe
+so-safe-04,Somali,correct translations,true,flood,Lower Shabelle alias retained
+so-safe-05,Somali,correct translations,true,flood,Meters accepted as m
+so-safe-06,Somali,correct translations,true,flood,Fatahaad hazard synonym accepted
+so-safe-07,Somali,correct translations,true,flood,English location accepted in Somali alert
+so-safe-08,Somali,correct translations,true,flood,Conservative required-action edge case
+en-num-01,English,changed numbers,false,flood,500 m changed to 50 m
+sw-num-02,Kiswahili,changed numbers,false,flood,500 m changed to 50 m
+so-num-03,Somali,changed numbers,false,flood,500 m changed to 50 m
+en-num-04,English,changed numbers,false,flood,500 m changed to 5000 m
+sw-num-05,Kiswahili,changed numbers,false,flood,500 m changed to 300 m
+so-num-06,Somali,changed numbers,false,flood,500 m changed to 700 m
+en-unit-01,English,changed units,false,flood,m changed to feet
+sw-unit-02,Kiswahili,changed units,false,flood,m changed to kilometres
+so-unit-03,Somali,changed units,false,flood,m changed to ft
+en-unit-04,English,changed units,false,flood,m changed to yards
+sw-unit-05,Kiswahili,changed units,false,flood,m changed to steps
+so-unit-06,Somali,changed units,false,flood,m changed to km
+en-action-01,English,missing instructions,false,flood,Do-not-cross instruction removed
+sw-action-02,Kiswahili,missing instructions,false,flood,Do-not-cross instruction removed
+so-action-03,Somali,missing instructions,false,flood,Do-not-cross instruction removed
+en-action-04,English,missing instructions,false,flood,Only stay-alert wording remains
+sw-action-05,Kiswahili,missing instructions,false,flood,Only stay-alert wording remains
+so-action-06,Somali,missing instructions,false,flood,Only stay-alert wording remains
+en-sev-01,English,wrong severity,false,flood,Severe changed to moderate
+sw-sev-02,Kiswahili,wrong severity,false,flood,Severe changed to wastani
+so-sev-03,Somali,wrong severity,false,flood,Severe changed to dhexdhexaad
+en-sev-04,English,wrong severity,false,flood,Severe changed to low
+sw-sev-05,Kiswahili,wrong severity,false,flood,Severe changed to yellow
+so-sev-06,Somali,wrong severity,false,flood,Severe changed to green
+en-loc-01,English,wrong location,false,flood,Lower Shabelle changed to Upper Shabelle
+sw-loc-02,Kiswahili,wrong location,false,flood,Lower Shabelle changed to Nairobi
+so-loc-03,Somali,wrong location,false,flood,Lower Shabelle changed to Marsabit
+en-loc-04,English,wrong location,false,flood,Lower Shabelle changed to Hawassa
+sw-loc-05,Kiswahili,wrong location,false,flood,Lower Shabelle changed to Upper Shabelle
+so-loc-06,Somali,wrong location,false,flood,Lower Shabelle changed to Shabeellaha Sare
+en-danger-01,English,dangerous wording,false,flood,Cross carefully
+sw-danger-02,Kiswahili,dangerous wording,false,flood,Enter floodwater
+so-danger-03,Somali,dangerous wording,false,flood,Cross carefully in Somali
+en-danger-04,English,dangerous wording,false,flood,Drive through floodwater
+sw-danger-05,Kiswahili,dangerous wording,false,flood,Ignore warning in Kiswahili
+so-danger-06,Somali,dangerous wording,false,flood,Ignore warning
+en-incomplete-01,English,incomplete translation,false,flood,Location and action omitted
+sw-incomplete-02,Kiswahili,incomplete translation,false,flood,Location and action omitted
+so-incomplete-03,Somali,incomplete translation,false,flood,Location and action omitted
+en-incomplete-04,English,incomplete translation,false,flood,Distance and severity omitted
+sw-incomplete-05,Kiswahili,incomplete translation,false,flood,Distance and severity omitted
+so-incomplete-06,Somali,incomplete translation,false,flood,Distance and severity omitted
+en-hazard-01,English,wrong hazard,false,drought,Flood changed to drought
+sw-hazard-02,Kiswahili,wrong hazard,false,drought,Flood changed to ukame
+so-hazard-03,Somali,wrong hazard,false,drought,Flood changed to abaar
+en-hazard-04,English,wrong hazard,false,earthquake,Flood changed to earthquake
+sw-hazard-05,Kiswahili,wrong hazard,false,earthquake,Flood changed to tetemeko
+so-hazard-06,Somali,wrong hazard,false,earthquake,Flood changed to dhul gariir
