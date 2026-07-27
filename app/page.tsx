@@ -1,6 +1,14 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
 import { runResqGuardEvaluation } from "../lib/resqguard.mjs";
 import { buildIncidentAssessment } from "../lib/assessment-builder";
 
@@ -154,8 +162,21 @@ async function clearPrototypeReports() {
   const tx = db.transaction("reports", "readwrite");
   tx.objectStore("reports").clear();
 }
+function formatUtcTime(value: string): string {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Not set";
+  }
+
+  const hours = String(date.getUTCHours()).padStart(2, "0");
+  const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+
+  return `${hours}:${minutes} UTC`;
+}
 
 export default function Home() {
+  const [hasMounted, setHasMounted] = useState(false);
   const [view, setView] = useState<"command" | "citizen" | "authority" | "guard" | "architecture">("command");
   const [events, setEvents] = useState<Hazard[]>([]);
   const [feedState, setFeedState] = useState<"loading" | "live" | "cached">("loading");
@@ -193,6 +214,9 @@ export default function Home() {
       setUpdated((current) => current || new Date().toISOString());
     }
   }, []);
+  useEffect(() => {
+  setHasMounted(true);
+}, []);
 
   useEffect(() => {
     const firstLoad = window.setTimeout(() => { void loadHazards(); }, 0);
@@ -246,7 +270,9 @@ export default function Home() {
   [hazard],
 );
   const dateLabel = useMemo(() => hazard.status === "simulated" ? "Based on a representative Lower Shabelle flood event" : new Date(hazard.time).toISOString().replace("T", " ").slice(0, 16) + " UTC", [hazard]);
-  const refreshText = relativeRefresh(updated);
+ const refreshText = hasMounted
+  ? relativeRefresh(updated)
+  : "Waiting for refresh";
 
   const openDemoAt = (target: number) => { setDemoOpen(true); setStep(target); setLanguage("English"); setSyncMessage(""); if (target === 0) { setOffline(false); setReportState(0); setReportSubmitted(false); } };
   const startDemo = () => openDemoAt(0);
@@ -425,7 +451,96 @@ export default function Home() {
     Prototype prioritisation score — not an official forecast probability.
   </p>
 </div>
-            <div className="action-card"><small>RECOMMENDED ACTION</small><p>Move away from river channels and low-lying areas. Follow verified local instructions.</p></div>
+            <div className="resqaction-card">
+  <div className="resqaction-header">
+    <div>
+      <span className="eyebrow">RESQACTION ACCOUNTABILITY</span>
+      <h3>Who must act, by when, and what success looks like</h3>
+    </div>
+
+    <span className="action-count-badge">
+      {assessment.priorityActions.filter(
+        (action) => action.status !== "completed",
+      ).length}{" "}
+      active
+    </span>
+  </div>
+
+  <div className="accountability-chain">
+    Evidence → action → owner → deadline → verified result
+  </div>
+
+  <div className="priority-action-list">
+    {assessment.priorityActions.map((action, index) => (
+      <article className="priority-action-item" key={action.id}>
+        <div className="action-step-number">
+          {String(index + 1).padStart(2, "0")}
+        </div>
+
+        <div className="action-task-content">
+          <div className="action-task-heading">
+            <div>
+              <h4>{action.title}</h4>
+              <p>{action.description}</p>
+            </div>
+
+            <span
+              className={`action-priority-badge ${action.priority}`}
+            >
+              {action.priority}
+            </span>
+          </div>
+
+          <div className="action-meta-grid">
+            <div>
+              <small>Responsible owner</small>
+              <b>{action.responsibleRole}</b>
+            </div>
+
+            <div>
+              <small>Deadline</small>
+             <b>
+  {hasMounted
+    ? formatUtcTime(action.deadline)
+    : "--:-- UTC"}
+</b>
+            </div>
+
+            <div>
+              <small>Status</small>
+              <b className={`action-status ${action.status}`}>
+                {action.status}
+              </b>
+            </div>
+          </div>
+
+          <div className="action-evidence-box">
+            <b>Evidence required before completion</b>
+
+            <ul>
+              {action.requiredEvidence.map((evidence) => (
+                <li key={evidence}>{evidence}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="expected-result-box">
+            <small>Expected verified result</small>
+            <p>{action.expectedResult}</p>
+          </div>
+        </div>
+      </article>
+    ))}
+  </div>
+
+  <div className="overall-impact-box">
+    <small>Mission objective</small>
+    <b>{assessment.expectedImpact.objective}</b>
+
+    <small>Success indicator</small>
+    <p>{assessment.expectedImpact.successIndicator}</p>
+  </div>
+</div>
             <div className="panel-buttons"><button className="primary" onClick={() => openDemoAt(1)}>View citizen alert</button><a href={hazard.sourceUrl} target="_blank" rel="noreferrer">View source ↗</a></div>
             <p className="source-note">Source type and timestamp are preserved through every alert.</p>
           </aside>

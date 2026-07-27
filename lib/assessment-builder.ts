@@ -239,7 +239,11 @@ function buildPriorityActions(
   hazard: HazardInput,
   severity: Severity,
 ): ActionTask[] {
-  const currentTime = Date.now();
+ const parsedHazardTime = Date.parse(hazard.time);
+
+const currentTime = Number.isNaN(parsedHazardTime)
+  ? 0
+  : parsedHazardTime;
 
   const priority =
     severity === "critical" || severity === "severe"
@@ -304,6 +308,12 @@ function inferLocation(place: string): {
   };
 }
 
+function getStableHazardTime(hazard: HazardInput): number {
+  const parsedTime = Date.parse(hazard.time);
+
+  return Number.isNaN(parsedTime) ? 0 : parsedTime;
+}
+
 function getMissingEvidence(hazardType: HazardType): string[] {
   if (hazardType === "flood") {
     return [
@@ -339,6 +349,7 @@ export function buildIncidentAssessment(
     evidence,
   );
   const location = inferLocation(hazard.place);
+  const currentTime = getStableHazardTime(hazard);
 
   return {
     id: `assessment-${hazard.id}`,
@@ -376,9 +387,9 @@ export function buildIncidentAssessment(
         "Priority evidence is reviewed and a safe multilingual warning is approved before the deadline.",
     },
 
-    generatedAt: new Date().toISOString(),
-    validUntil: new Date(
-      Date.now() + 60 * 60 * 1000,
-    ).toISOString(),
+   generatedAt: new Date(currentTime).toISOString(),
+validUntil: new Date(
+  currentTime + 60 * 60 * 1000,
+).toISOString(),
   };
 }
