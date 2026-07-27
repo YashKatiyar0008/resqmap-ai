@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { runResqGuardEvaluation } from "../lib/resqguard.mjs";
+import { buildIncidentAssessment } from "../lib/assessment-builder";
 
 type Hazard = {
   id: string;
@@ -240,6 +241,10 @@ export default function Home() {
     });
   }, [events, mapReady]);
   const hazard = selected || events[0] || simulatedFlood;
+  const assessment = useMemo(
+  () => buildIncidentAssessment(hazard),
+  [hazard],
+);
   const dateLabel = useMemo(() => hazard.status === "simulated" ? "Based on a representative Lower Shabelle flood event" : new Date(hazard.time).toISOString().replace("T", " ").slice(0, 16) + " UTC", [hazard]);
   const refreshText = relativeRefresh(updated);
 
@@ -323,7 +328,7 @@ export default function Home() {
 
   if (view === "authority") return <main className="app-shell">{navigation}{offlineBanner}<div className="trust-banner">Authority workflow is a session-state prototype; it demonstrates the verification path without a separate production backend.</div><section className="authority-page"><div className="page-heading"><span className="data-label community">COMMUNITY-REPORTED</span><span className="eyebrow">AUTHORITY OPERATIONS</span><h1>Community verification workflow</h1><p>Reports are matched to active hazards, checked for corroboration and retained with an audit trail.</p></div>{reportSubmitted && <div className="authority-arrival"><b>✓ Same citizen report received</b><span>INC-2026-0418 · Flooded road · Afgooye, Lower Shabelle</span><button onClick={() => openDemoAt(4)}>Open verification workflow</button></div>}<div className="authority-summary"><div><b>{reportSubmitted ? 9 : 8}</b><span>New reports</span></div><div><b>3</b><span>Reviewing</span></div><div><b>12</b><span>Verified</span></div><div><b>4</b><span>Escalated</span></div></div><div className="kanban">{["New","Reviewing","Verified","Escalated","Resolved","Rejected"].map((column, index) => <section key={column}><h3>{column}<span>{index < 4 ? [reportSubmitted ? 9 : 8,3,12,4][index] : index === 4 ? 19 : 2}</span></h3>{index < 4 && <article className={index === 3 ? "priority" : ""}><small>{reportSubmitted && index === 0 ? "INC-2026-0418 · COMMUNITY-REPORTED" : "INC-2026-0418 · FLOOD"}</small><b>{reportSubmitted && index === 0 ? "Flooded road, Afgooye" : index === 1 ? "Flooded road under review" : index === 2 ? "Bridge access verified" : "Citizen warning expanded"}</b><p>Inside active flood zone · 1.8 km from hazard</p><span>7 similar reports · 2 images</span></article>}</section>)}</div><div className="audit"><h2>Incident audit history</h2>{["14:31 — Report received","14:32 — Matched with active flood zone","14:34 — Reviewed by officer","14:36 — Verified","14:37 — Citizen alert escalated"].map(item => <p key={item}><i />{item}</p>)}</div></section></main>;
 
-  if (view === "architecture") return <main className="app-shell">{navigation}<section className="architecture-page"><div className="page-heading"><span className="eyebrow">SYSTEM TRANSPARENCY</span><h1>Architecture, sources and evaluation</h1><p>What is connected, what is model-derived and what remains a prototype is clearly separated.</p></div><div className="architecture-flow">{["USGS / GDACS / Weather","Data normalisation","Risk scoring","Alert generation","Translation","ResQGuard validation","Citizen + Authority","IndexedDB cache + queue"].map((item,index)=><div key={item}><span>{index+1}</span><b>{item}</b>{index<7&&<i>↓</i>}</div>)}</div><h2>Source reliability centre</h2><div className="source-table"><div className="table-head"><span>Source</span><span>Status</span><span>Last successful refresh</span><span>Data classification</span><span>Failure state</span><span>Cached</span></div>{[["USGS Earthquakes",feeds.usgs.connected ? "Connected" : "Cached",relativeRefresh(feeds.usgs.lastSuccessfulRefresh || updated),feeds.usgs.classification || "LIVE",feeds.usgs.state || "cached-or-unavailable","Yes"],["GDACS Alerts",feeds.gdacs.connected ? "Connected" : "Cached",relativeRefresh(feeds.gdacs.lastSuccessfulRefresh || updated),feeds.gdacs.classification || "LIVE",feeds.gdacs.state || "cached-or-unavailable","Yes"],["Weather Risk Model",feeds.droughtModel.connected ? "Connected" : "Cached",relativeRefresh(feeds.droughtModel.lastSuccessfulRefresh || updated),feeds.droughtModel.classification || "MODEL-DERIVED",feeds.droughtModel.state || "cached-or-unavailable","Yes"],["Demo shelters","Available","Demo dataset","SIMULATED","local fallback","Yes"]].map(row=><div key={row[0]}>{row.map((cell,index)=><span key={cell} className={index===1?"source-ok":index===3?"type-tag":""}>{cell}</span>)}</div>)}</div><h2>System evaluation</h2><div className="metric-grid architecture-metrics">{[["Unsafe detection",`${evaluation.unsafeDetected}/${evaluation.unsafeTotal}`],["Safe approval",`${evaluation.safeApproved}/${evaluation.safeTotal}`],["Number + unit accuracy",`${evaluation.numberAccuracy}/${evaluation.total}`],["Severity accuracy",`${evaluation.severityCorrect}/${evaluation.total}`],["Avg. validation",evaluation.latency],["Fallback success",`${evaluation.fallbackActivated}/${evaluation.unsafeDetected}`]].map(([name,value])=><div key={name}><b>{value}</b><span>{name}</span></div>)}</div><div className="tech-grid">{[["Frontend","Next.js · React"],["Backend","Next.js server routes"],["APIs","USGS · GDACS · Open-Meteo"],["Validation","Deterministic rules + language checks"],["Offline storage","IndexedDB verified warning + queued reports"],["Hosting","Vercel + Sites"],["Current limitation","No certified authority integration"],["Global scalability","Architecture can ingest additional regional feeds"]].map(([a,b])=><p key={a}><span>{a}</span><b>{b}</b></p>)}</div></section></main>;
+  if (view === "architecture") return <main className="app-shell">{navigation}<section className="architecture-page"><div className="page-heading"><span className="eyebrow">SYSTEM TRANSPARENCY</span><h1>Architecture, sources and evaluation</h1><p>What is connected, what is model-derived and what remains a prototype is clearly separated.</p></div><div className="architecture-flow">{["USGS / GDACS / Weather","Data normalisation","Risk scoring","Alert generation","Translation","ResQGuard validation","Citizen + Authority","IndexedDB cache + queue"].map((item,index)=><div key={item}><span>{index+1}</span><b>{item}</b>{index<7&&<i>↓</i>}</div>)}</div><h2>Source reliability centre</h2><div className="source-table"><div className="table-head"><span>Source</span><span>Status</span><span>Last successful refresh</span><span>Data classification</span><span>Failure state</span><span>Cached</span></div>{[["USGS Earthquakes",feeds.usgs.connected ? "Connected" : "Cached",relativeRefresh(feeds.usgs.lastSuccessfulRefresh || updated),feeds.usgs.classification || "LIVE",feeds.usgs.state || "cached-or-unavailable","Yes"],["GDACS Alerts",feeds.gdacs.connected ? "Connected" : "Cached",relativeRefresh(feeds.gdacs.lastSuccessfulRefresh || updated),feeds.gdacs.classification || "LIVE",feeds.gdacs.state || "cached-or-unavailable","Yes"],["Weather Risk Model",feeds.droughtModel.connected ? "Connected" : "Cached",relativeRefresh(feeds.droughtModel.lastSuccessfulRefresh || updated),feeds.droughtModel.classification || "MODEL-DERIVED",feeds.droughtModel.state || "cached-or-unavailable","Yes"],["Demo shelters","Available","Demo dataset","SIMULATED","local fallback","Yes"]].map(row=><div key={row[0]}>{row.map((cell,index)=><span key={cell} className={index===1?"source-ok":index===3?"type-tag":""}>{cell}</span>)}</div>)}</div><h2>System evaluation</h2><div className="metric-grid architecture-metrics">{[["Unsafe detection",`${evaluation.unsafeDetected}/${evaluation.unsafeTotal}`],["Safe approval",`${evaluation.safeApproved}/${evaluation.safeTotal}`],["Number + unit accuracy",`${evaluation.numberAccuracy}/${evaluation.total}`],["Severity accuracy",`${evaluation.severityCorrect}/${evaluation.total}`],["Avg. validation", evaluation.latency],["Fallback success",`${evaluation.fallbackActivated}/${evaluation.unsafeDetected}`]].map(([name,value])=><div key={name}><b>{value}</b><span>{name}</span></div>)}</div><div className="tech-grid">{[["Frontend","Next.js · React"],["Backend","Next.js server routes"],["APIs","USGS · GDACS · Open-Meteo"],["Validation","Deterministic rules + language checks"],["Offline storage","IndexedDB verified warning + queued reports"],["Hosting","Vercel + Sites"],["Current limitation","No certified authority integration"],["Global scalability","Architecture can ingest additional regional feeds"]].map(([a,b])=><p key={a}><span>{a}</span><b>{b}</b></p>)}</div></section></main>;
 
   return (
     <main className="app-shell">
@@ -363,7 +368,63 @@ export default function Home() {
           </div>
           <aside className="hazard-panel">
             <div className="hazard-heading"><span className={`hazard-icon ${hazard.type}`}>{hazard.type === "flood" ? "≋" : hazard.type === "drought" ? "☀" : "⌁"}</span><span><small>{dataLabel(hazard)}</small><h3>{hazard.title}</h3><p>{hazard.place}</p></span></div>
-            <div className="risk-row"><div className="risk-score"><b>{hazard.type === "flood" ? "86" : "68"}</b><small>/100 RISK</small></div><dl><div><dt>Severity</dt><dd>{severityLabel(hazard.severity)}</dd></div><div><dt>Source</dt><dd>{hazard.source}</dd></div><div><dt>Updated</dt><dd>{dateLabel}</dd></div></dl></div>
+           <div className="risk-row">
+  <div className="risk-score">
+    <b>{assessment.riskScore}</b>
+    <small>/100 risk</small>
+  </div>
+
+  <div className="risk-confidence">
+    <b>{assessment.confidenceScore}%</b>
+    <small>evidence confidence</small>
+  </div>
+</div>
+
+<div className="resqintel-card">
+  <div className="resqintel-header">
+    <div>
+      <span className="eyebrow">RESQINTEL EXPLANATION</span>
+      <h3>Why is the risk increasing?</h3>
+    </div>
+
+    <span className="classification-badge">
+      {assessment.classification}
+    </span>
+  </div>
+
+  <p className="confidence-explanation">
+    {assessment.confidenceExplanation}
+  </p>
+
+  <div className="risk-factor-list">
+    {assessment.contributingFactors.map((factor) => (
+      <div className="risk-factor-item" key={factor.id}>
+        <span className="risk-factor-score">
+          +{factor.contribution}
+        </span>
+
+        <div>
+          <b>{factor.label}</b>
+          <small>{factor.explanation}</small>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div className="missing-evidence-panel">
+    <b>Evidence still required</b>
+
+    <ul>
+      {assessment.missingEvidence.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
+  </div>
+
+  <p className="prototype-score-note">
+    Prototype prioritisation score — not an official forecast probability.
+  </p>
+</div>
             <div className="action-card"><small>RECOMMENDED ACTION</small><p>Move away from river channels and low-lying areas. Follow verified local instructions.</p></div>
             <div className="panel-buttons"><button className="primary" onClick={() => openDemoAt(1)}>View citizen alert</button><a href={hazard.sourceUrl} target="_blank" rel="noreferrer">View source ↗</a></div>
             <p className="source-note">Source type and timestamp are preserved through every alert.</p>
